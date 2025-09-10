@@ -20,7 +20,7 @@ Custom ComfyUI nodes for integrating WaveSpeed AI API for image and video genera
 ### Option 2: Git Clone
 ```bash
 cd ComfyUI/custom_nodes
-git clone https://github.com/YOUR_USERNAME/razv-wavespeed.git
+git clone https://github.com/razvanmatei-sf/razv-wavespeed.git
 cd razv-wavespeed/comfyui-razv-wavespeed-custom
 pip install -r requirements.txt
 ```
