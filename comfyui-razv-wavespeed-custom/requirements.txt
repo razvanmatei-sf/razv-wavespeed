@@ -1,0 +1,4 @@
+requests
+pillow
+numpy<2.0.0
+torch
