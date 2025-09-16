@@ -11,18 +11,6 @@ class FluxKontextDevNode:
     Built on Flux architecture with enhanced context understanding.
     """
 
-    # Resolution presets with aspect ratios
-    RESOLUTION_MAP = {
-        "1:1 (Square)": (1024, 1024),
-        "16:9 (Widescreen Landscape)": (1664, 928),
-        "9:16 (Widescreen Portrait)": (928, 1664),
-        "4:3 (Standard Landscape)": (1472, 1104),
-        "3:4 (Standard Portrait)": (1104, 1472),
-        "3:2 (Classic Landscape)": (1584, 1056),
-        "2:3 (Classic Portrait)": (1056, 1584)
-    }
-
-    SIZES = list(RESOLUTION_MAP.keys())
 
     @classmethod
     def INPUT_TYPES(s):
@@ -38,10 +26,6 @@ class FluxKontextDevNode:
                     "default": "",
                     "tooltip": "The image URL to transform (connect from Upload Image node)",
                     "forceInput": True
-                }),
-                "size": (s.SIZES, {
-                    "default": "1:1 (Square)",
-                    "tooltip": "The aspect ratio and resolution of the output image"
                 }),
                 "guidance_scale": ("FLOAT", {
                     "default": 2.5,
@@ -81,10 +65,6 @@ class FluxKontextDevNode:
                     "step": 1,
                     "tooltip": "Number of images to generate (1-4)"
                 }),
-                "custom_size": ("STRING", {
-                    "default": "",
-                    "tooltip": "Custom size as 'width*height' (e.g. '1920*1080'). Overrides size dropdown if provided."
-                }),
             }
         }
 
@@ -94,9 +74,9 @@ class FluxKontextDevNode:
     CATEGORY = "WaveSpeedAI"
     FUNCTION = "execute"
 
-    def execute(self, client, prompt, image_url, size="1:1 (Square)", guidance_scale=2.5,
+    def execute(self, client, prompt, image_url, guidance_scale=2.5,
                 num_inference_steps=28, seed=-1, output_format="jpeg", enable_sync_mode=True,
-                num_images=1, custom_size=""):
+                num_images=1):
         """
         Execute the Flux Kontext Dev model
 
@@ -104,38 +84,21 @@ class FluxKontextDevNode:
             client: WaveSpeed API client
             prompt: Text prompt for image transformation
             image_url: Input image URL to transform
-            size: Image size from dropdown (aspect ratio preset)
             guidance_scale: How closely to follow the prompt
             num_inference_steps: Number of denoising steps
             seed: Random seed (-1 for random)
             output_format: Output format (jpeg, png, or webp)
             enable_sync_mode: Whether to wait for completion
             num_images: Number of images to generate
-            custom_size: Optional custom size override
 
         Returns:
             Transformed image tensor
         """
 
-        # Use custom size if provided, otherwise convert dropdown selection to width*height
-        if custom_size.strip():
-            final_size = custom_size.strip()
-            # Validate custom size format
-            if '*' not in final_size:
-                raise ValueError(f"Invalid custom size format: {final_size}. Must be 'width*height' (e.g., '1024*1024')")
-        else:
-            # Get resolution from map
-            if size in self.RESOLUTION_MAP:
-                width, height = self.RESOLUTION_MAP[size]
-                final_size = f"{width}*{height}"
-            else:
-                raise ValueError(f"Invalid size selection: {size}")
-
         # Prepare the request payload
         payload = {
             "prompt": prompt,
             "image": image_url,
-            "size": final_size,
             "guidance_scale": guidance_scale,
             "num_inference_steps": num_inference_steps,
             "num_images": num_images,
