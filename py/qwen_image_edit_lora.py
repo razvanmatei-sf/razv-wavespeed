@@ -43,10 +43,27 @@ class QwenImageEditLoraNode:
                 }),
             },
             "optional": {
-                "lora_paths": ("STRING", {
-                    "multiline": True,
+                "lora_1_path": ("STRING", {
                     "default": "",
-                    "tooltip": "LoRA model paths, one per line (e.g., 'path/to/lora1' on line 1, 'path/to/lora2' on line 2)"
+                    "tooltip": "First LoRA model path (e.g., 'flymy-ai/qwen-image-style-lora')"
+                }),
+                "lora_1_scale": ("FLOAT", {
+                    "default": 1.0,
+                    "min": 0.0,
+                    "max": 2.0,
+                    "step": 0.1,
+                    "tooltip": "Scale parameter (Note: edit-lora API may not use individual scales)"
+                }),
+                "lora_2_path": ("STRING", {
+                    "default": "",
+                    "tooltip": "Second LoRA model path (optional)"
+                }),
+                "lora_2_scale": ("FLOAT", {
+                    "default": 1.0,
+                    "min": 0.0,
+                    "max": 2.0,
+                    "step": 0.1,
+                    "tooltip": "Scale parameter (Note: edit-lora API may not use individual scales)"
                 }),
             }
         }
@@ -58,7 +75,9 @@ class QwenImageEditLoraNode:
     FUNCTION = "execute"
 
     def execute(self, client, prompt, image_url, seed=-1, output_format="jpeg",
-                enable_sync_mode=True, lora_paths=""):
+                enable_sync_mode=True,
+                lora_1_path="", lora_1_scale=1.0,
+                lora_2_path="", lora_2_scale=1.0):
         """
         Execute the Qwen Image Edit LoRA model
 
@@ -69,17 +88,24 @@ class QwenImageEditLoraNode:
             seed: Random seed (-1 for random)
             output_format: Output format (jpeg, png, or webp)
             enable_sync_mode: Whether to wait for completion
-            lora_paths: String with LoRA model paths (one per line)
+            lora_1_path: First LoRA model path
+            lora_1_scale: First LoRA influence scale
+            lora_2_path: Second LoRA model path (optional)
+            lora_2_scale: Second LoRA influence scale
 
         Returns:
             Edited image tensor
         """
 
-        # Parse LoRA paths from multiline string to list
+        # Build LoRA configuration list
+        # Note: edit-lora API uses simple array of paths, not objects with path/scale
         lora_list = []
-        if lora_paths and lora_paths.strip():
-            # Split by newlines and filter out empty lines
-            lora_list = [path.strip() for path in lora_paths.strip().split('\n') if path.strip()]
+        if lora_1_path and lora_1_path.strip():
+            # For edit-lora, we just pass the paths as strings
+            # The API doesn't support scale per LoRA in this endpoint
+            lora_list.append(lora_1_path.strip())
+        if lora_2_path and lora_2_path.strip():
+            lora_list.append(lora_2_path.strip())
 
         # Prepare the request payload
         payload = {
