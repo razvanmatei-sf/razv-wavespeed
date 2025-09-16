@@ -52,7 +52,7 @@ class QwenImageEditLoraNode:
                     "min": 0.0,
                     "max": 2.0,
                     "step": 0.1,
-                    "tooltip": "Scale parameter (Note: edit-lora API may not use individual scales)"
+                    "tooltip": "First LoRA influence scale (0.0 to 2.0)"
                 }),
                 "lora_2_path": ("STRING", {
                     "default": "",
@@ -63,7 +63,7 @@ class QwenImageEditLoraNode:
                     "min": 0.0,
                     "max": 2.0,
                     "step": 0.1,
-                    "tooltip": "Scale parameter (Note: edit-lora API may not use individual scales)"
+                    "tooltip": "Second LoRA influence scale (0.0 to 2.0)"
                 }),
             }
         }
@@ -98,14 +98,18 @@ class QwenImageEditLoraNode:
         """
 
         # Build LoRA configuration list
-        # Note: edit-lora API uses simple array of paths, not objects with path/scale
+        # The edit-lora API expects objects with path and scale properties
         lora_list = []
         if lora_1_path and lora_1_path.strip():
-            # For edit-lora, we just pass the paths as strings
-            # The API doesn't support scale per LoRA in this endpoint
-            lora_list.append(lora_1_path.strip())
+            lora_list.append({
+                "path": lora_1_path.strip(),
+                "scale": lora_1_scale
+            })
         if lora_2_path and lora_2_path.strip():
-            lora_list.append(lora_2_path.strip())
+            lora_list.append({
+                "path": lora_2_path.strip(),
+                "scale": lora_2_scale
+            })
 
         # Prepare the request payload
         payload = {
