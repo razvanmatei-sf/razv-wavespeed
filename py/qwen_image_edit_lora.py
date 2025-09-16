@@ -43,10 +43,10 @@ class QwenImageEditLoraNode:
                 }),
             },
             "optional": {
-                "loras": ("STRING", {
+                "lora_paths": ("STRING", {
                     "multiline": True,
-                    "default": "[]",
-                    "tooltip": "JSON array of LoRA models to apply (e.g., '[\"lora1\", \"lora2\"]'). Leave as [] for no LoRA"
+                    "default": "",
+                    "tooltip": "LoRA model paths, one per line (e.g., 'path/to/lora1' on line 1, 'path/to/lora2' on line 2)"
                 }),
             }
         }
@@ -58,7 +58,7 @@ class QwenImageEditLoraNode:
     FUNCTION = "execute"
 
     def execute(self, client, prompt, image_url, seed=-1, output_format="jpeg",
-                enable_sync_mode=True, loras="[]"):
+                enable_sync_mode=True, lora_paths=""):
         """
         Execute the Qwen Image Edit LoRA model
 
@@ -69,19 +69,17 @@ class QwenImageEditLoraNode:
             seed: Random seed (-1 for random)
             output_format: Output format (jpeg, png, or webp)
             enable_sync_mode: Whether to wait for completion
-            loras: JSON string array of LoRA models to apply
+            lora_paths: String with LoRA model paths (one per line)
 
         Returns:
             Edited image tensor
         """
 
-        # Parse LoRA string to list
-        import json
-        try:
-            lora_list = json.loads(loras) if loras and loras != "[]" else []
-        except json.JSONDecodeError:
-            print(f"Warning: Invalid LoRA JSON format, using empty list")
-            lora_list = []
+        # Parse LoRA paths from multiline string to list
+        lora_list = []
+        if lora_paths and lora_paths.strip():
+            # Split by newlines and filter out empty lines
+            lora_list = [path.strip() for path in lora_paths.strip().split('\n') if path.strip()]
 
         # Prepare the request payload
         payload = {

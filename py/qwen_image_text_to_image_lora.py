@@ -55,10 +55,27 @@ class QwenImageTextToImageLoraNode:
                 }),
             },
             "optional": {
-                "loras": ("STRING", {
-                    "multiline": True,
-                    "default": '[]',
-                    "tooltip": 'JSON array of LoRA models. Example: [{"path": "flymy-ai/qwen-image-realism-lora", "scale": 1}]'
+                "lora_1_path": ("STRING", {
+                    "default": "",
+                    "tooltip": "First LoRA model path (e.g., 'flymy-ai/qwen-image-realism-lora')"
+                }),
+                "lora_1_scale": ("FLOAT", {
+                    "default": 1.0,
+                    "min": 0.0,
+                    "max": 2.0,
+                    "step": 0.1,
+                    "tooltip": "First LoRA influence scale (0.0 to 2.0)"
+                }),
+                "lora_2_path": ("STRING", {
+                    "default": "",
+                    "tooltip": "Second LoRA model path (optional)"
+                }),
+                "lora_2_scale": ("FLOAT", {
+                    "default": 1.0,
+                    "min": 0.0,
+                    "max": 2.0,
+                    "step": 0.1,
+                    "tooltip": "Second LoRA influence scale (0.0 to 2.0)"
                 }),
                 "custom_size": ("STRING", {
                     "default": "",
@@ -74,7 +91,10 @@ class QwenImageTextToImageLoraNode:
     FUNCTION = "execute"
 
     def execute(self, client, prompt, size="1:1 (Square)", seed=-1,
-                output_format="jpeg", enable_sync_mode=True, loras='[]', custom_size=""):
+                output_format="jpeg", enable_sync_mode=True,
+                lora_1_path="", lora_1_scale=1.0,
+                lora_2_path="", lora_2_scale=1.0,
+                custom_size=""):
         """
         Execute the Qwen Image Text-to-Image with LoRA model
 
@@ -85,31 +105,28 @@ class QwenImageTextToImageLoraNode:
             seed: Random seed (-1 for random)
             output_format: Output format (jpeg, png, or webp)
             enable_sync_mode: Whether to wait for completion
-            loras: JSON string of LoRA configurations
+            lora_1_path: First LoRA model path
+            lora_1_scale: First LoRA influence scale
+            lora_2_path: Second LoRA model path (optional)
+            lora_2_scale: Second LoRA influence scale
             custom_size: Optional custom size override
 
         Returns:
             Generated image tensor
         """
 
-        # Parse LoRA configuration
-        try:
-            if loras and loras.strip() and loras.strip() != '[]':
-                lora_list = json.loads(loras)
-                # Validate LoRA structure
-                for lora in lora_list:
-                    if not isinstance(lora, dict):
-                        raise ValueError(f"Each LoRA must be a dictionary with 'path' and 'scale' keys")
-                    if 'path' not in lora:
-                        raise ValueError(f"LoRA missing 'path' key: {lora}")
-                    if 'scale' not in lora:
-                        lora['scale'] = 1.0  # Default scale if not provided
-            else:
-                lora_list = []
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid LoRA JSON format: {e}")
-        except Exception as e:
-            raise ValueError(f"Error processing LoRA configuration: {e}")
+        # Build LoRA configuration list
+        lora_list = []
+        if lora_1_path and lora_1_path.strip():
+            lora_list.append({
+                "path": lora_1_path.strip(),
+                "scale": lora_1_scale
+            })
+        if lora_2_path and lora_2_path.strip():
+            lora_list.append({
+                "path": lora_2_path.strip(),
+                "scale": lora_2_scale
+            })
 
         # Use custom size if provided, otherwise convert dropdown selection to width*height
         if custom_size.strip():
