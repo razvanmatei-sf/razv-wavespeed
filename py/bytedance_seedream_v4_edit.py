@@ -26,9 +26,19 @@ class BytedanceSeedreamV4Edit:
                     "control_after_generate": True,
                     "tooltip": "Random seed for reproducible results. -1 for random seed"
                 }),
-                "size": (["2227*3183", "1024*1024", "1536*1536", "2048*2048"], {
-                    "default": "2227*3183",
-                    "tooltip": "Output image size"
+                "width": ("INT", {
+                    "default": 2227,
+                    "min": 512,
+                    "max": 4096,
+                    "step": 8,
+                    "tooltip": "Width of the output image"
+                }),
+                "height": ("INT", {
+                    "default": 3183,
+                    "min": 512,
+                    "max": 4096,
+                    "step": 8,
+                    "tooltip": "Height of the output image"
                 }),
                 "enable_sync_mode": ("BOOLEAN", {
                     "default": True,
@@ -42,7 +52,7 @@ class BytedanceSeedreamV4Edit:
     CATEGORY = "WaveSpeedAI"
     FUNCTION = "execute"
 
-    def execute(self, client, prompt, image_url, seed, size, enable_sync_mode):
+    def execute(self, client, prompt, image_url, seed, width, height, enable_sync_mode):
         real_client = WaveSpeedClient(api_key=client["api_key"])
         
         payload = {
@@ -50,7 +60,7 @@ class BytedanceSeedreamV4Edit:
             "enable_sync_mode": enable_sync_mode,
             "images": [image_url],
             "prompt": prompt,
-            "size": size
+            "size": f"{width}*{height}"
         }
         
         if seed != -1:

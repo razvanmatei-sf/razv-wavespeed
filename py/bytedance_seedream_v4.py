@@ -14,9 +14,19 @@ class ByteDanceSeedDreamV4:
                     "default": "American retro style: a girl wearing a polka-dot dress with sunglasses adorning her head.",
                     "tooltip": "Text description of the image to generate"
                 }),
-                "size": (["1024*1024", "1024*2048", "2048*1024", "2048*2048"], {
-                    "default": "2048*2048",
-                    "tooltip": "Size of the generated image"
+                "width": ("INT", {
+                    "default": 2048,
+                    "min": 512,
+                    "max": 4096,
+                    "step": 8,
+                    "tooltip": "Width of the generated image"
+                }),
+                "height": ("INT", {
+                    "default": 2048,
+                    "min": 512,
+                    "max": 4096,
+                    "step": 8,
+                    "tooltip": "Height of the generated image"
                 }),
                 "enable_sync_mode": ("BOOLEAN", {
                     "default": True,
@@ -39,14 +49,14 @@ class ByteDanceSeedDreamV4:
     CATEGORY = "WaveSpeedAI"
     FUNCTION = "execute"
     
-    def execute(self, client, prompt, size, enable_sync_mode, seed=-1):
+    def execute(self, client, prompt, width, height, enable_sync_mode, seed=-1):
         # Create the actual client object from the client dict
         real_client = WaveSpeedClient(api_key=client["api_key"])
         
         # Build payload
         payload = {
             "prompt": prompt,
-            "size": size,
+            "size": f"{width}*{height}",
             "enable_sync_mode": enable_sync_mode,
             "enable_base64_output": False,
         }
