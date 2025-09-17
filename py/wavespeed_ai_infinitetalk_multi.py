@@ -21,14 +21,14 @@ class WaveSpeedAIInfiniteTalkMulti:
         return {
             "required": {
                 "client": ("WAVESPEED_AI_API_CLIENT",),
-                "audio_1": ("STRING", {
+                "left_audio": ("STRING", {
                     "default": "",
-                    "tooltip": "First audio file URL for multi-character conversation (connect from Upload Audio node)",
+                    "tooltip": "Left audio file URL for multi-character conversation (connect from Upload Audio node)",
                     "forceInput": True
                 }),
-                "audio_2": ("STRING", {
+                "right_audio": ("STRING", {
                     "default": "",
-                    "tooltip": "Second audio file URL for multi-character conversation (connect from Upload Audio node)",
+                    "tooltip": "Right audio file URL for multi-character conversation (connect from Upload Audio node)",
                     "forceInput": True
                 }),
                 "image": ("STRING", {
@@ -79,15 +79,15 @@ class WaveSpeedAIInfiniteTalkMulti:
     CATEGORY = "WaveSpeedAI"
     FUNCTION = "execute"
 
-    def execute(self, client, audio_1, audio_2, image, resolution, enable_sync_mode,
+    def execute(self, client, left_audio, right_audio, image, resolution, enable_sync_mode,
                 prompt="", audio_order="meanwhile", mask_image="", seed=-1, enable_base64_output=False):
         """
         Execute the InfiniteTalk Multi model
 
         Args:
             client: WaveSpeed API client
-            audio_1: First audio file URL for multi-character conversation
-            audio_2: Second audio file URL for multi-character conversation
+            left_audio: Left audio file URL for multi-character conversation
+            right_audio: Right audio file URL for multi-character conversation
             image: Image URL containing multiple characters to animate
             resolution: Output video resolution (480p or 720p)
             enable_sync_mode: Whether to wait for completion
@@ -106,8 +106,8 @@ class WaveSpeedAIInfiniteTalkMulti:
 
         # Build payload with dual audio inputs
         payload = {
-            "audio_1": audio_1,
-            "audio_2": audio_2,
+            "left_audio": left_audio,
+            "right_audio": right_audio,
             "image": image,
             "resolution": resolution,
             "enable_sync_mode": enable_sync_mode,
