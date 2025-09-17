@@ -119,7 +119,7 @@ class WaveSpeedAIInfiniteTalkMulti:
             payload["prompt"] = prompt.strip()
 
         if audio_order:
-            payload["audio_order"] = audio_order
+            payload["order"] = audio_order
 
         if mask_image and mask_image.strip():
             payload["mask_image"] = mask_image.strip()
