@@ -3,16 +3,17 @@ from .wavespeed_api.utils import imageurl2tensor
 from .wavespeed_api.client import WaveSpeedClient
 
 
-class WaveSpeedAIInfiniteTalk:
+class InfiniteTalkMulti:
     """
-    WaveSpeed AI InfiniteTalk Node
+    WaveSpeed AI InfiniteTalk Multi Node
 
-    Audio-driven conversational AI video generation model that creates talking or singing videos
-    from a single image and audio input. Features accurate lip synchronization, head movement
-    alignment, and facial expression matching with the audio.
+    Audio-driven multi-character conversational AI video generation model that creates
+    talking or singing videos from a single image and 2 audio inputs. Features accurate
+    lip synchronization, head movement alignment, and multi-character conversation support.
 
-    Unlike traditional dubbing methods, InfiniteTalk enables infinite-length video generation
-    with consistent identity preservation and instruction following capabilities.
+    Unlike standard InfiniteTalk, this Multi version enables simultaneous multi-character
+    conversations with synchronized audio and movements, perfect for dialogue scenes
+    and multi-person interactions.
     """
 
     @classmethod
@@ -20,14 +21,19 @@ class WaveSpeedAIInfiniteTalk:
         return {
             "required": {
                 "client": ("WAVESPEED_AI_API_CLIENT",),
-                "audio": ("STRING", {
+                "left_audio": ("STRING", {
                     "default": "",
-                    "tooltip": "Audio file URL for generating lip-synced output (connect from Upload Audio node)",
+                    "tooltip": "Left audio file URL for multi-character conversation (connect from Upload Audio node)",
+                    "forceInput": True
+                }),
+                "right_audio": ("STRING", {
+                    "default": "",
+                    "tooltip": "Right audio file URL for multi-character conversation (connect from Upload Audio node)",
                     "forceInput": True
                 }),
                 "image": ("STRING", {
                     "default": "",
-                    "tooltip": "Image to animate (connect from Upload Image node)",
+                    "tooltip": "Image containing multiple characters to animate (connect from Upload Image node)",
                     "forceInput": True
                 }),
                 "resolution": (["480p", "720p"], {
@@ -43,11 +49,15 @@ class WaveSpeedAIInfiniteTalk:
                 "prompt": ("STRING", {
                     "multiline": True,
                     "default": "",
-                    "tooltip": "Optional generation instructions to control scene, pose, and behavior while maintaining audio synchronization"
+                    "tooltip": "Optional generation instructions to control scene, pose, and multi-character behavior"
+                }),
+                "audio_order": (["meanwhile", "left_right", "right_left"], {
+                    "default": "meanwhile",
+                    "tooltip": "Audio order for multi-character conversation: meanwhile (simultaneous), left_right, or right_left"
                 }),
                 "mask_image": ("STRING", {
                     "default": "",
-                    "tooltip": "Optional mask image URL to specify which person to animate (connect from Upload Image node)",
+                    "tooltip": "Optional mask image URL to specify which characters to animate (connect from Upload Image node)",
                     "forceInput": True
                 }),
                 "seed": ("INT", {
@@ -69,19 +79,21 @@ class WaveSpeedAIInfiniteTalk:
     CATEGORY = "WaveSpeedAI"
     FUNCTION = "execute"
 
-    def execute(self, client, audio, image, resolution, enable_sync_mode,
-                prompt="", mask_image="", seed=-1, enable_base64_output=False):
+    def execute(self, client, left_audio, right_audio, image, resolution, enable_sync_mode,
+                prompt="", audio_order="meanwhile", mask_image="", seed=-1, enable_base64_output=False):
         """
-        Execute the InfiniteTalk model
+        Execute the InfiniteTalk Multi model
 
         Args:
             client: WaveSpeed API client
-            audio: Audio file URL for lip-sync generation
-            image: Image URL to animate
+            left_audio: Left audio file URL for multi-character conversation
+            right_audio: Right audio file URL for multi-character conversation
+            image: Image URL containing multiple characters to animate
             resolution: Output video resolution (480p or 720p)
             enable_sync_mode: Whether to wait for completion
             prompt: Optional generation instructions
-            mask_image: Optional mask to specify person to animate
+            audio_order: Audio order for conversation (meanwhile, left_right, right_left)
+            mask_image: Optional mask to specify characters to animate
             seed: Random seed (-1 for random)
             enable_base64_output: Whether to enable base64 output
 
@@ -92,9 +104,10 @@ class WaveSpeedAIInfiniteTalk:
         # Create the actual client object from the client dict
         real_client = WaveSpeedClient(api_key=client["api_key"])
 
-        # Build payload
+        # Build payload with dual audio inputs
         payload = {
-            "audio": audio,
+            "left_audio": left_audio,
+            "right_audio": right_audio,
             "image": image,
             "resolution": resolution,
             "enable_sync_mode": enable_sync_mode,
@@ -105,6 +118,9 @@ class WaveSpeedAIInfiniteTalk:
         if prompt and prompt.strip():
             payload["prompt"] = prompt.strip()
 
+        if audio_order:
+            payload["order"] = audio_order
+
         if mask_image and mask_image.strip():
             payload["mask_image"] = mask_image.strip()
 
@@ -112,8 +128,8 @@ class WaveSpeedAIInfiniteTalk:
         if seed != -1:
             payload["seed"] = seed
 
-        # API endpoint for InfiniteTalk
-        endpoint = "/api/v3/wavespeed-ai/infinitetalk"
+        # API endpoint for InfiniteTalk Multi
+        endpoint = "/api/v3/wavespeed-ai/infinitetalk/multi"
 
         try:
             response = real_client.post(endpoint, payload, timeout=real_client.once_timeout)
@@ -121,7 +137,7 @@ class WaveSpeedAIInfiniteTalk:
             if enable_sync_mode:
                 # In sync mode, we get the results directly
                 if "outputs" in response and response["outputs"]:
-                    # InfiniteTalk returns video URLs, take the first one
+                    # InfiniteTalk Multi returns video URLs, take the first one
                     video_url = response["outputs"][0]
                     return (video_url,)
                 else:
@@ -129,11 +145,11 @@ class WaveSpeedAIInfiniteTalk:
             else:
                 # In async mode, we need to poll for results
                 task_id = response["id"]
-                print(f"InfiniteTalk task submitted successfully. Request ID: {task_id}")
-                print("Note: Video generation may take several minutes depending on audio length and resolution.")
+                print(f"InfiniteTalk Multi task submitted successfully. Request ID: {task_id}")
+                print("Note: Multi-character video generation may take several minutes depending on audio length and complexity.")
 
                 try:
-                    # Wait for task to complete - longer timeout for video generation
+                    # Wait for task to complete - longer timeout for multi-character video generation
                     result = real_client.wait_for_task(task_id, polling_interval=2, timeout=1200)  # 20 minutes timeout
 
                     if "outputs" in result and result["outputs"]:
@@ -147,15 +163,15 @@ class WaveSpeedAIInfiniteTalk:
                     raise Exception(f"Async task failed: {str(e)}")
 
         except Exception as e:
-            print(f"Error in InfiniteTalk: {str(e)}")
+            print(f"Error in InfiniteTalk Multi: {str(e)}")
             raise e
 
 
 # Node registration - REQUIRED
 NODE_CLASS_MAPPINGS = {
-    "WaveSpeedAI InfiniteTalk": WaveSpeedAIInfiniteTalk
+    "WaveSpeedAI InfiniteTalk Multi": InfiniteTalkMulti
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WaveSpeedAI InfiniteTalk": "WaveSpeedAI InfiniteTalk"
+    "WaveSpeedAI InfiniteTalk Multi": "WaveSpeedAI InfiniteTalk Multi"
 }
