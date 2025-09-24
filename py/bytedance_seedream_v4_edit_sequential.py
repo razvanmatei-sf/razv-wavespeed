@@ -14,27 +14,62 @@ class BytedanceSeedreamV4EditSequential:
                     "default": "Generate a series of 2 magazine photoshoots for these models.",
                     "tooltip": "Description of the image editing/generation task. Specify the number of images to generate and use phrases like 'a series of' or 'group of images' for consistency."
                 }),
-                "images": ("STRING", {
-                    "default": "",
-                    "tooltip": "Comma-separated URLs of input images (connect from Upload Image nodes). Maximum 10 images.",
-                    "forceInput": True
-                }),
                 "max_images": ("INT", {
                     "default": 2,
                     "min": 1,
                     "max": 15,
                     "tooltip": "Number of images to generate. Must align with prompt description."
+                })
+            },
+            "optional": {
+                "image_1": ("STRING", {
+                    "default": "",
+                    "tooltip": "First input image URL (connect from Upload Image node)"
                 }),
-                "size": (["2227*3183", "1024*1024", "1536*1536", "2048*2048"], {
+                "image_2": ("STRING", {
+                    "default": "",
+                    "tooltip": "Second input image URL (connect from Upload Image node)"
+                }),
+                "image_3": ("STRING", {
+                    "default": "",
+                    "tooltip": "Third input image URL (connect from Upload Image node)"
+                }),
+                "image_4": ("STRING", {
+                    "default": "",
+                    "tooltip": "Fourth input image URL (connect from Upload Image node)"
+                }),
+                "image_5": ("STRING", {
+                    "default": "",
+                    "tooltip": "Fifth input image URL (connect from Upload Image node)"
+                }),
+                "image_6": ("STRING", {
+                    "default": "",
+                    "tooltip": "Sixth input image URL (connect from Upload Image node)"
+                }),
+                "image_7": ("STRING", {
+                    "default": "",
+                    "tooltip": "Seventh input image URL (connect from Upload Image node)"
+                }),
+                "image_8": ("STRING", {
+                    "default": "",
+                    "tooltip": "Eighth input image URL (connect from Upload Image node)"
+                }),
+                "image_9": ("STRING", {
+                    "default": "",
+                    "tooltip": "Ninth input image URL (connect from Upload Image node)"
+                }),
+                "image_10": ("STRING", {
+                    "default": "",
+                    "tooltip": "Tenth input image URL (connect from Upload Image node)"
+                }),
+                "size": ("STRING", {
                     "default": "2048*2048",
-                    "tooltip": "Output image size"
+                    "tooltip": "Output image dimensions (width*height). Range: 1024-4096 pixels per dimension"
                 }),
                 "enable_sync_mode": ("BOOLEAN", {
                     "default": False,
                     "tooltip": "Wait for generation to complete before returning"
                 }),
-            },
-            "optional": {
                 "seed": ("INT", {
                     "default": -1,
                     "min": -1,
@@ -45,7 +80,7 @@ class BytedanceSeedreamV4EditSequential:
                 "enable_base64_output": ("BOOLEAN", {
                     "default": False,
                     "tooltip": "Enable base64 output format"
-                }),
+                })
             }
         }
 
@@ -54,20 +89,14 @@ class BytedanceSeedreamV4EditSequential:
     CATEGORY = "WaveSpeedAI"
     FUNCTION = "execute"
 
-    def execute(self, client, prompt, images, max_images, size, enable_sync_mode, seed=-1, enable_base64_output=False):
+    def execute(self, client, prompt, max_images, image_1="", image_2="", image_3="", image_4="", image_5="",
+                image_6="", image_7="", image_8="", image_9="", image_10="", size="2048*2048",
+                enable_sync_mode=False, seed=-1, enable_base64_output=False):
         real_client = WaveSpeedClient(api_key=client["api_key"])
 
-        # Process images input - handle both single URLs and comma-separated URLs
-        if isinstance(images, str):
-            if "," in images:
-                # Comma-separated URLs
-                image_urls = [url.strip() for url in images.split(",") if url.strip()]
-            else:
-                # Single URL
-                image_urls = [images.strip()] if images.strip() else []
-        else:
-            # Handle list input (in case it comes as a list)
-            image_urls = images if isinstance(images, list) else [str(images)]
+        # Collect all provided image URLs
+        image_inputs = [image_1, image_2, image_3, image_4, image_5, image_6, image_7, image_8, image_9, image_10]
+        image_urls = [url.strip() for url in image_inputs if url and url.strip()]
 
         # Validate max 10 images as per API documentation
         if len(image_urls) > 10:
