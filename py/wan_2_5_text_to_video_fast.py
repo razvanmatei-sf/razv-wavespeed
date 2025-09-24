@@ -91,13 +91,16 @@ class WAN25TextToVideoFast:
             else:
                 # For async mode, get task ID and poll for results
                 task_id = response["id"]
-                print(f"Task submitted successfully. Request ID: {task_id}")
+                print(f"Video generation task submitted. Request ID: {task_id}")
+                print(f"This may take several minutes to complete...")
 
                 try:
-                    result = real_client.wait_for_task(task_id, polling_interval=1, timeout=300)
+                    print(f"Waiting for video generation to complete (task ID: {task_id})...")
+                    result = real_client.wait_for_task(task_id, polling_interval=2, timeout=1800)  # 30 minutes
 
                     if "outputs" in result and result["outputs"]:
                         video_url = result["outputs"][0]
+                        print(f"Video generation completed. URL: {video_url}")
                         return (video_url,)
                     else:
                         raise Exception("Task completed but no output received")
