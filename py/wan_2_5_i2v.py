@@ -8,6 +8,7 @@ class WaveSpeedAIWAN25I2V:
     Advanced image-to-video generation model with enhanced capabilities.
     Creates high-quality videos from still images with improved motion modeling,
     temporal consistency, and support for prompt expansion features.
+    Optional audio-driven generation for lip-sync and audio-visual alignment.
     """
 
     @classmethod
@@ -39,6 +40,11 @@ class WaveSpeedAIWAN25I2V:
                 }),
             },
             "optional": {
+                "audio_url": ("STRING", {
+                    "default": "",
+                    "tooltip": "Optional audio URL for audio-driven video generation (connect from Upload Audio node)",
+                    "forceInput": True
+                }),
                 "enable_prompt_expansion": ("BOOLEAN", {
                     "default": False,
                     "tooltip": "Enable automatic prompt expansion for enhanced details"
@@ -59,7 +65,7 @@ class WaveSpeedAIWAN25I2V:
     FUNCTION = "execute"
 
     def execute(self, client, image_url, prompt, resolution, duration, enable_sync_mode,
-                enable_prompt_expansion=False, seed=-1):
+                audio_url="", enable_prompt_expansion=False, seed=-1):
         # Create the actual client object from the client dict
         real_client = WaveSpeedClient(api_key=client["api_key"])
 
@@ -72,6 +78,11 @@ class WaveSpeedAIWAN25I2V:
             "enable_prompt_expansion": enable_prompt_expansion,
             "seed": seed
         }
+
+        # Add optional audio if provided
+        if audio_url and audio_url.strip():
+            payload["audio"] = audio_url.strip()
+            print(f"Audio-driven mode enabled with audio URL: {audio_url[:50]}...")
 
         # API endpoint
         endpoint = "/api/v3/wavespeed-ai/wan-2.5/i2v"

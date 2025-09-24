@@ -8,13 +8,14 @@ class Wan25I2V(BaseRequest):
     """
     Request model for the WAN 2.5 Image-to-Video API.
 
-    Advanced image-to-video generation with enhanced motion modeling
-    and optional prompt expansion capabilities.
+    Advanced image-to-video generation with enhanced motion modeling,
+    optional prompt expansion capabilities, and audio-driven generation support.
     """
     image: str = Field(..., description="The image URL for generating the video output.")
     prompt: str = Field(..., description="Text prompt describing the desired motion and content.")
     resolution: str = Field("720p", description="Output video resolution.", enum=["720p", "1080p"])
     duration: int = Field(5, description="Duration of the generated video in seconds.", enum=[5, 10])
+    audio: Optional[str] = Field("", description="Optional audio URL for audio-driven video generation.")
     enable_prompt_expansion: Optional[bool] = Field(False, description="Enable automatic prompt expansion for enhanced details.")
     seed: Optional[int] = Field(-1, ge=-1, le=2147483647, description="Random seed for reproducible results.")
 
@@ -33,4 +34,4 @@ class Wan25I2V(BaseRequest):
 
     def field_order(self) -> List[str]:
         """Defines the order of fields."""
-        return ["image", "prompt", "resolution", "duration", "enable_prompt_expansion", "seed"]
+        return ["image", "prompt", "resolution", "duration", "audio", "enable_prompt_expansion", "seed"]
