@@ -1,5 +1,4 @@
 import time
-from .wavespeed_api.utils import videourl2tensor
 from .wavespeed_api.client import WaveSpeedClient
 
 class WaveSpeedAIWAN22Animate:
@@ -43,8 +42,8 @@ class WaveSpeedAIWAN22Animate:
             }
         }
 
-    RETURN_TYPES = ("VIDEO",)
-    RETURN_NAMES = ("output_video",)
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("video_url",)
     CATEGORY = "WaveSpeedAI"
     FUNCTION = "execute"
 
@@ -81,8 +80,9 @@ class WaveSpeedAIWAN22Animate:
                 if "outputs" in response and response["outputs"]:
                     video_urls = response["outputs"]  # Already a list
                     print(f"Task completed successfully. Received {len(video_urls)} video(s)")
-                    # Pass the full URLs array to videourl2tensor
-                    return (videourl2tensor(video_urls),)
+                    # Return the first video URL like other WaveSpeed video nodes
+                    video_url = video_urls[0]
+                    return (video_url,)
                 else:
                     raise Exception(f"No output received from sync API. Response: {response}")
             else:
@@ -97,8 +97,9 @@ class WaveSpeedAIWAN22Animate:
                     if "outputs" in result and result["outputs"]:
                         video_urls = result["outputs"]  # Already a list
                         print(f"Task completed successfully. Received {len(video_urls)} video(s)")
-                        # Pass the full URLs array to videourl2tensor
-                        return (videourl2tensor(video_urls),)
+                        # Return the first video URL like other WaveSpeed video nodes
+                        video_url = video_urls[0]
+                        return (video_url,)
                     else:
                         raise Exception(f"Task completed but no output received. Response: {result}")
 
