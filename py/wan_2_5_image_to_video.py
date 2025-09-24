@@ -48,7 +48,7 @@ class WAN25ImageToVideo:
                     "tooltip": "Random seed for reproducible results. -1 for random seed"
                 }),
                 "enable_sync_mode": ("BOOLEAN", {
-                    "default": True,
+                    "default": False,
                     "tooltip": "Wait for generation to complete before returning"
                 })
             }
@@ -60,7 +60,7 @@ class WAN25ImageToVideo:
     FUNCTION = "execute"
 
     def execute(self, client, image, prompt, resolution, negative_prompt="", audio="",
-                duration=5, enable_prompt_expansion=False, seed=-1, enable_sync_mode=True):
+                duration=5, enable_prompt_expansion=False, seed=-1, enable_sync_mode=False):
         # Create the actual client object from the client dict
         real_client = WaveSpeedClient(api_key=client["api_key"])
 

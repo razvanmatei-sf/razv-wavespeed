@@ -36,7 +36,7 @@ class WAN25TextToImage:
                     "tooltip": "Random seed for reproducible results. -1 for random seed"
                 }),
                 "enable_sync_mode": ("BOOLEAN", {
-                    "default": True,
+                    "default": False,
                     "tooltip": "Wait for generation to complete before returning"
                 })
             }
@@ -48,7 +48,7 @@ class WAN25TextToImage:
     FUNCTION = "execute"
 
     def execute(self, client, prompt, size="1024*1024", negative_prompt="",
-                enable_prompt_expansion=False, seed=-1, enable_sync_mode=True):
+                enable_prompt_expansion=False, seed=-1, enable_sync_mode=False):
         # Create the actual client object from the client dict
         real_client = WaveSpeedClient(api_key=client["api_key"])
 
