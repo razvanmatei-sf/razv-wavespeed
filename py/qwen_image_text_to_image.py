@@ -11,13 +11,13 @@ class QwenImageTextToImageNode:
     
     # Resolution presets with aspect ratios (max 1536 pixels per dimension)
     RESOLUTION_MAP = {
-        "1:1 (Square)": (1328, 1328),
-        "16:9 (Widescreen Landscape)": (1536, 864),
-        "9:16 (Widescreen Portrait)": (864, 1536),
-        "4:3 (Standard Landscape)": (1472, 1104),
-        "3:4 (Standard Portrait)": (1104, 1472),
-        "3:2 (Classic Landscape)": (1536, 1024),
-        "2:3 (Classic Portrait)": (1024, 1536)
+        "1328x1328 (1:1)": (1328, 1328),
+        "1536x864 (16:9)": (1536, 864),
+        "864x1536 (9:16)": (864, 1536),
+        "1472x1104 (4:3)": (1472, 1104),
+        "1104x1472 (3:4)": (1104, 1472),
+        "1536x1024 (3:2)": (1536, 1024),
+        "1024x1536 (2:3)": (1024, 1536)
     }
     
     SIZES = list(RESOLUTION_MAP.keys())
@@ -33,7 +33,7 @@ class QwenImageTextToImageNode:
                     "tooltip": "Text prompt for image generation (supports Chinese & English)"
                 }),
                 "size": (s.SIZES, {
-                    "default": "1:1 (Square)",
+                    "default": "1328x1328 (1:1)",
                     "tooltip": "The aspect ratio and resolution of the generated image"
                 }),
                 "seed": ("INT", {
@@ -66,7 +66,7 @@ class QwenImageTextToImageNode:
     CATEGORY = "WaveSpeedAI"
     FUNCTION = "execute"
     
-    def execute(self, client, prompt, size="1:1 (Square)", seed=-1, 
+    def execute(self, client, prompt, size="1328x1328 (1:1)", seed=-1,
                 output_format="jpeg", enable_sync_mode=True, custom_size=""):
         """
         Execute the Qwen Image Text-to-Image model
