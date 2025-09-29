@@ -9,15 +9,15 @@ class QwenImageTextToImageNode:
     Qwen-Image — a 20B MMDiT model for next-gen text-to-image generation.
     """
     
-    # Resolution presets with aspect ratios
+    # Resolution presets with aspect ratios (max 1536 pixels per dimension)
     RESOLUTION_MAP = {
         "1:1 (Square)": (1328, 1328),
-        "16:9 (Widescreen Landscape)": (1664, 928),
-        "9:16 (Widescreen Portrait)": (928, 1664),
+        "16:9 (Widescreen Landscape)": (1536, 864),
+        "9:16 (Widescreen Portrait)": (864, 1536),
         "4:3 (Standard Landscape)": (1472, 1104),
         "3:4 (Standard Portrait)": (1104, 1472),
-        "3:2 (Classic Landscape)": (1584, 1056),
-        "2:3 (Classic Portrait)": (1056, 1584)
+        "3:2 (Classic Landscape)": (1536, 1024),
+        "2:3 (Classic Portrait)": (1024, 1536)
     }
     
     SIZES = list(RESOLUTION_MAP.keys())
