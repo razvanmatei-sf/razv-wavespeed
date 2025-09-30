@@ -15,7 +15,6 @@ class ByteDanceSeedDreamV4Sequential:
         ("1664x2496 (2:3)", 1664, 2496),
         ("3024x1296 (21:9)", 3024, 1296),
         ("4096x4096 (1:1)", 4096, 4096),
-        ("Custom", None, None),
     ]
 
     SIZE_PRESETS = [preset[0] for preset in RECOMMENDED_PRESETS_SEEDREAM_4]
@@ -40,20 +39,6 @@ class ByteDanceSeedDreamV4Sequential:
                     "default": "2048x2048 (1:1)",
                     "tooltip": "Resolution preset for the generated images"
                 }),
-                "width": ("INT", {
-                    "default": 2048,
-                    "min": 512,
-                    "max": 4096,
-                    "step": 8,
-                    "tooltip": "Width of the generated images (used when Custom is selected)"
-                }),
-                "height": ("INT", {
-                    "default": 2048,
-                    "min": 512,
-                    "max": 4096,
-                    "step": 8,
-                    "tooltip": "Height of the generated images (used when Custom is selected)"
-                }),
                 "seed": ("INT", {
                     "default": 0,
                     "min": 0,
@@ -73,20 +58,16 @@ class ByteDanceSeedDreamV4Sequential:
     CATEGORY = "WaveSpeedAI"
     FUNCTION = "execute"
 
-    def execute(self, client, prompt, max_images, size_preset, width, height, seed, enable_sync_mode):
+    def execute(self, client, prompt, max_images, size_preset, seed, enable_sync_mode):
         # Create the actual client object from the client dict
         real_client = WaveSpeedClient(api_key=client["api_key"])
 
-        # Determine final size based on preset selection
-        if size_preset == "Custom":
-            final_size = f"{width}*{height}"
+        # Find the preset dimensions
+        preset_data = next((preset for preset in self.RECOMMENDED_PRESETS_SEEDREAM_4 if preset[0] == size_preset), None)
+        if preset_data:
+            final_size = f"{preset_data[1]}*{preset_data[2]}"
         else:
-            # Find the preset dimensions
-            preset_data = next((preset for preset in self.RECOMMENDED_PRESETS_SEEDREAM_4 if preset[0] == size_preset), None)
-            if preset_data:
-                final_size = f"{preset_data[1]}*{preset_data[2]}"
-            else:
-                final_size = f"{width}*{height}"  # Fallback to custom values
+            raise ValueError(f"Invalid size preset: {size_preset}")
 
         # Build payload
         payload = {
