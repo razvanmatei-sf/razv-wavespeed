@@ -4,6 +4,22 @@ from .wavespeed_api.client import WaveSpeedClient
 
 
 class BytedanceSeedreamV4EditSequential:
+    # Recommended resolution presets for ByteDance Seedream V4
+    RECOMMENDED_PRESETS_SEEDREAM_4 = [
+        ("2048x2048 (1:1)", 2048, 2048),
+        ("2304x1728 (4:3)", 2304, 1728),
+        ("1728x2304 (3:4)", 1728, 2304),
+        ("2560x1440 (16:9)", 2560, 1440),
+        ("1440x2560 (9:16)", 1440, 2560),
+        ("2496x1664 (3:2)", 2496, 1664),
+        ("1664x2496 (2:3)", 1664, 2496),
+        ("3024x1296 (21:9)", 3024, 1296),
+        ("4096x4096 (1:1)", 4096, 4096),
+        ("Custom", None, None),
+    ]
+
+    SIZE_PRESETS = [preset[0] for preset in RECOMMENDED_PRESETS_SEEDREAM_4]
+
     @classmethod
     def INPUT_TYPES(s):
         return {
@@ -11,7 +27,7 @@ class BytedanceSeedreamV4EditSequential:
                 "client": ("WAVESPEED_AI_API_CLIENT",),
                 "prompt": ("STRING", {
                     "multiline": True,
-                    "default": "Generate a series of 2 magazine photoshoots for these models.",
+                    "default": "",
                     "tooltip": "Description of the image editing/generation task. Specify the number of images to generate and use phrases like 'a series of' or 'group of images' for consistency."
                 }),
                 "max_images": ("INT", {
@@ -19,7 +35,36 @@ class BytedanceSeedreamV4EditSequential:
                     "min": 1,
                     "max": 15,
                     "tooltip": "Number of images to generate. Must align with prompt description."
-                })
+                }),
+                "size_preset": (s.SIZE_PRESETS, {
+                    "default": "2048x2048 (1:1)",
+                    "tooltip": "Resolution preset for the generated images"
+                }),
+                "width": ("INT", {
+                    "default": 2048,
+                    "min": 512,
+                    "max": 4096,
+                    "step": 8,
+                    "tooltip": "Width of the generated images (used when Custom is selected)"
+                }),
+                "height": ("INT", {
+                    "default": 2048,
+                    "min": 512,
+                    "max": 4096,
+                    "step": 8,
+                    "tooltip": "Height of the generated images (used when Custom is selected)"
+                }),
+                "seed": ("INT", {
+                    "default": 0,
+                    "min": 0,
+                    "max": 0xffffffffffffffff,
+                    "control_after_generate": True,
+                    "tooltip": "Random seed for reproducible results"
+                }),
+                "enable_sync_mode": ("BOOLEAN", {
+                    "default": False,
+                    "tooltip": "Wait for generation to complete before returning"
+                }),
             },
             "optional": {
                 "image_1": ("STRING", {
@@ -62,25 +107,6 @@ class BytedanceSeedreamV4EditSequential:
                     "default": "",
                     "tooltip": "Tenth input image URL (connect from Upload Image node)"
                 }),
-                "size": ("STRING", {
-                    "default": "2048*2048",
-                    "tooltip": "Output image dimensions (width*height). Range: 1024-4096 pixels per dimension"
-                }),
-                "enable_sync_mode": ("BOOLEAN", {
-                    "default": False,
-                    "tooltip": "Wait for generation to complete before returning"
-                }),
-                "seed": ("INT", {
-                    "default": -1,
-                    "min": -1,
-                    "max": 0xffffffffffffffff,
-                    "control_after_generate": True,
-                    "tooltip": "Random seed for reproducible results. -1 for random seed"
-                }),
-                "enable_base64_output": ("BOOLEAN", {
-                    "default": False,
-                    "tooltip": "Enable base64 output format"
-                })
             }
         }
 
@@ -89,9 +115,9 @@ class BytedanceSeedreamV4EditSequential:
     CATEGORY = "WaveSpeedAI"
     FUNCTION = "execute"
 
-    def execute(self, client, prompt, max_images, image_1="", image_2="", image_3="", image_4="", image_5="",
-                image_6="", image_7="", image_8="", image_9="", image_10="", size="2048*2048",
-                enable_sync_mode=False, seed=-1, enable_base64_output=False):
+    def execute(self, client, prompt, max_images, size_preset, width, height, seed, enable_sync_mode,
+                image_1="", image_2="", image_3="", image_4="", image_5="",
+                image_6="", image_7="", image_8="", image_9="", image_10=""):
         real_client = WaveSpeedClient(api_key=client["api_key"])
 
         # Collect all provided image URLs
@@ -105,17 +131,28 @@ class BytedanceSeedreamV4EditSequential:
         if not image_urls:
             raise Exception("At least one input image is required")
 
+        # Determine final size based on preset selection
+        if size_preset == "Custom":
+            final_size = f"{width}*{height}"
+        else:
+            # Find the preset dimensions
+            preset_data = next((preset for preset in self.RECOMMENDED_PRESETS_SEEDREAM_4 if preset[0] == size_preset), None)
+            if preset_data:
+                final_size = f"{preset_data[1]}*{preset_data[2]}"
+            else:
+                final_size = f"{width}*{height}"  # Fallback to custom values
+
         payload = {
-            "enable_base64_output": enable_base64_output,
+            "enable_base64_output": False,
             "enable_sync_mode": enable_sync_mode,
             "images": image_urls,
             "max_images": max_images,
             "prompt": prompt,
-            "size": size
+            "size": final_size
         }
 
-        # Add seed if not random
-        if seed != -1:
+        # Add seed if not 0 (0 means random for this API)
+        if seed != 0:
             payload["seed"] = seed
 
         # API endpoint for edit sequential
