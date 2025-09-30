@@ -104,9 +104,9 @@ class ByteDanceSeedDreamV4Sequential:
 
 # Node registration - REQUIRED
 NODE_CLASS_MAPPINGS = {
-    "WaveSpeedAI ByteDance SeedDream V4 Sequential": ByteDanceSeedDreamV4Sequential
+    "WaveSpeedAI ByteDance Seedream V4 Sequential": ByteDanceSeedDreamV4Sequential
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WaveSpeedAI ByteDance SeedDream V4 Sequential": "WaveSpeedAI ByteDance SeedDream V4 Sequential"
+    "WaveSpeedAI ByteDance Seedream V4 Sequential": "WaveSpeedAI ByteDance Seedream V4 Sequential"
 }
