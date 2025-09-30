@@ -4,6 +4,22 @@ from .wavespeed_api.client import WaveSpeedClient
 
 
 class ByteDanceSeedDreamV4Sequential:
+    # Recommended resolution presets for ByteDance Seedream V4
+    RECOMMENDED_PRESETS_SEEDREAM_4 = [
+        ("2048x2048 (1:1)", 2048, 2048),
+        ("2304x1728 (4:3)", 2304, 1728),
+        ("1728x2304 (3:4)", 1728, 2304),
+        ("2560x1440 (16:9)", 2560, 1440),
+        ("1440x2560 (9:16)", 1440, 2560),
+        ("2496x1664 (3:2)", 2496, 1664),
+        ("1664x2496 (2:3)", 1664, 2496),
+        ("3024x1296 (21:9)", 3024, 1296),
+        ("4096x4096 (1:1)", 4096, 4096),
+        ("Custom", None, None),
+    ]
+
+    SIZE_PRESETS = [preset[0] for preset in RECOMMENDED_PRESETS_SEEDREAM_4]
+
     @classmethod
     def INPUT_TYPES(s):
         return {
@@ -11,7 +27,7 @@ class ByteDanceSeedDreamV4Sequential:
                 "client": ("WAVESPEED_AI_API_CLIENT",),
                 "prompt": ("STRING", {
                     "multiline": True,
-                    "default": "Generate a set of 4 consecutive illustrations, capturing a high-octane giant robot battle in a classic mecha anime style, from two massive mechs charging at each other in a ruined cityscape, to a dynamic clash of energy swords creating a shower of sparks, a close-up on a pilot's determined face inside the cockpit, and the final explosive shot of the victorious mech standing over its defeated foe.",
+                    "default": "",
                     "tooltip": "Text description specifying the number and content of sequential images to generate. Must clearly specify the number of images in the prompt."
                 }),
                 "max_images": ("INT", {
@@ -20,26 +36,34 @@ class ByteDanceSeedDreamV4Sequential:
                     "max": 15,
                     "tooltip": "Maximum number of images to generate. Must align with number specified in prompt."
                 }),
-                "size": (["1024*1024", "1024*2048", "2048*1024", "2048*2048"], {
-                    "default": "2048*2048",
-                    "tooltip": "Size of the generated images"
+                "size_preset": (s.SIZE_PRESETS, {
+                    "default": "2048x2048 (1:1)",
+                    "tooltip": "Resolution preset for the generated images"
+                }),
+                "width": ("INT", {
+                    "default": 2048,
+                    "min": 512,
+                    "max": 4096,
+                    "step": 8,
+                    "tooltip": "Width of the generated images (used when Custom is selected)"
+                }),
+                "height": ("INT", {
+                    "default": 2048,
+                    "min": 512,
+                    "max": 4096,
+                    "step": 8,
+                    "tooltip": "Height of the generated images (used when Custom is selected)"
+                }),
+                "seed": ("INT", {
+                    "default": 0,
+                    "min": 0,
+                    "max": 0xffffffffffffffff,
+                    "control_after_generate": True,
+                    "tooltip": "Random seed for reproducible results"
                 }),
                 "enable_sync_mode": ("BOOLEAN", {
                     "default": False,
                     "tooltip": "Wait for generation to complete before returning"
-                }),
-            },
-            "optional": {
-                "seed": ("INT", {
-                    "default": -1,
-                    "min": -1,
-                    "max": 0xffffffffffffffff,
-                    "control_after_generate": True,
-                    "tooltip": "Random seed for reproducible results. -1 for random seed"
-                }),
-                "enable_base64_output": ("BOOLEAN", {
-                    "default": False,
-                    "tooltip": "Enable base64 output format"
                 }),
             }
         }
@@ -49,21 +73,32 @@ class ByteDanceSeedDreamV4Sequential:
     CATEGORY = "WaveSpeedAI"
     FUNCTION = "execute"
 
-    def execute(self, client, prompt, max_images, size, enable_sync_mode, seed=-1, enable_base64_output=False):
+    def execute(self, client, prompt, max_images, size_preset, width, height, seed, enable_sync_mode):
         # Create the actual client object from the client dict
         real_client = WaveSpeedClient(api_key=client["api_key"])
+
+        # Determine final size based on preset selection
+        if size_preset == "Custom":
+            final_size = f"{width}*{height}"
+        else:
+            # Find the preset dimensions
+            preset_data = next((preset for preset in self.RECOMMENDED_PRESETS_SEEDREAM_4 if preset[0] == size_preset), None)
+            if preset_data:
+                final_size = f"{preset_data[1]}*{preset_data[2]}"
+            else:
+                final_size = f"{width}*{height}"  # Fallback to custom values
 
         # Build payload
         payload = {
             "prompt": prompt,
             "max_images": max_images,
-            "size": size,
+            "size": final_size,
             "enable_sync_mode": enable_sync_mode,
-            "enable_base64_output": enable_base64_output,
+            "enable_base64_output": False,
         }
 
-        # Add seed if not random
-        if seed != -1:
+        # Add seed if not 0 (0 means random for this API)
+        if seed != 0:
             payload["seed"] = seed
 
         # API endpoint for sequential generation
