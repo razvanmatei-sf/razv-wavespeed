@@ -17,6 +17,7 @@ class GoogleNanoBananaProEditMulti:
     - Industry-leading cost efficiency at $0.07/image
     - Precise editing behavior (object replacement, style changes, etc.)
     - Fast, reliable, no cold starts
+    - Supports up to 14 input images
 
     Pricing: $0.07/image
     """
@@ -42,11 +43,11 @@ class GoogleNanoBananaProEditMulti:
                         "tooltip": "Text description of the edit to perform",
                     },
                 ),
-                "image_url": (
+                "image_1": (
                     "STRING",
                     {
                         "default": "",
-                        "tooltip": "URL of input image for editing (connect from Upload Image node)",
+                        "tooltip": "Primary input image URL (connect from Upload Image node)",
                         "forceInput": True,
                     },
                 ),
@@ -82,12 +83,39 @@ class GoogleNanoBananaProEditMulti:
                 ),
             },
             "optional": {
-                "additional_images": (
+                "image_2": (
                     "STRING",
                     {
-                        "multiline": True,
                         "default": "",
-                        "tooltip": "Additional image URLs (one per line, max 13 additional for 14 total)",
+                        "tooltip": "Second input image URL (optional)",
+                    },
+                ),
+                "image_3": (
+                    "STRING",
+                    {
+                        "default": "",
+                        "tooltip": "Third input image URL (optional)",
+                    },
+                ),
+                "image_4": (
+                    "STRING",
+                    {
+                        "default": "",
+                        "tooltip": "Fourth input image URL (optional)",
+                    },
+                ),
+                "image_5": (
+                    "STRING",
+                    {
+                        "default": "",
+                        "tooltip": "Fifth input image URL (optional)",
+                    },
+                ),
+                "image_6": (
+                    "STRING",
+                    {
+                        "default": "",
+                        "tooltip": "Sixth input image URL (optional)",
                     },
                 ),
             },
@@ -102,25 +130,25 @@ class GoogleNanoBananaProEditMulti:
         self,
         client,
         prompt,
-        image_url,
+        image_1,
         aspect_ratio,
         num_images,
         output_format,
         enable_sync_mode,
-        additional_images="",
+        image_2="",
+        image_3="",
+        image_4="",
+        image_5="",
+        image_6="",
     ):
         real_client = WaveSpeedClient(api_key=client["api_key"])
 
-        # Build images array
-        images = [image_url]
+        # Build images array from all provided image inputs
+        images = [image_1]
 
-        # Add additional images if provided
-        if additional_images and additional_images.strip():
-            additional_urls = [
-                url.strip() for url in additional_images.split("\n") if url.strip()
-            ]
-            # Limit to 13 additional images (14 total max)
-            images.extend(additional_urls[:13])
+        for img in [image_2, image_3, image_4, image_5, image_6]:
+            if img and img.strip():
+                images.append(img.strip())
 
         payload = {
             "prompt": prompt,
